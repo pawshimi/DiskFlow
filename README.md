@@ -1,6 +1,9 @@
 # DiskFlow
 Aplikasi simulasi interaktif berbasis web yang memvisualisasikan pergerakan head disk dan menghitung total head movement (jarak pencarian) secara otomatis menggunakan algoritma FCFS, SSTF, dan SCAN. Dilengkapi dengan grafik pergerakan interaktif dan perbandingan metrik efisiensi antar algoritma.
 
+**Desain UI/UX (Figma)**
+https://www.figma.com/design/cXsWPikCb797AOvDwwCitk/DiskFlow?node-id=0-1&t=Br3wnfnhbZhXZLQd-1
+
 **Cara instalasi:**
 1. Clone Repositori
    Buka terminal di laptop kamu, lalu jalankan perintah:
