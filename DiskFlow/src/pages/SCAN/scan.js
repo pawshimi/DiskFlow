@@ -1,4 +1,4 @@
-import { pt } from '../../shared/utils.js'
+import { pt } from '../../share/utils.js'
 
 // SCAN klasik (elevator): head menyapu ke satu ujung disk (0 atau max), lalu berbalik
 export function scan(reqs, head, max, dir = 'up') {

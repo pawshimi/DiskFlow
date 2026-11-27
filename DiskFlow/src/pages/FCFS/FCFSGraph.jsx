@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import DiskChart from '../../shared/DiskChart.jsx'
-import StepTable from '../../shared/StepTable.jsx'
-import InputForm from '../../shared/InputForm.jsx'
-import ModeTabs from '../../shared/ModeTabs.jsx'
-import { COLORS, DEFAULTS, parseInputs, totalMovement } from '../../shared/utils.js'
+import DiskChart from '../../share/DiskChart.jsx'
+import StepTable from '../../share/StepTable.jsx'
+import InputForm from '../../share/InputForm.jsx'
+import ModeTabs from '../../share/ModeTabs.jsx'
+import { COLORS, DEFAULTS, parseInputs, totalMovement } from '../../share/utils.js'
 import { fcfs } from './fcfs.js'
 
 // Halaman FCFS (tampilan grafik): simulasi langkah demi langkah dengan grafik garis dan titik

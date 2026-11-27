@@ -32,3 +32,7 @@ https://www.figma.com/design/cXsWPikCb797AOvDwwCitk/DiskFlow?node-id=0-1&t=Br3wn
 4. Salsa Billa Setiawan Putri - 257006111183
 5. Wijdan Maula Hidayat - 257006111127
 6. Muhammad Nibras Zahran Irawan - 257006111167
+
+## Dokumentasi Perkembangan UI/UX
+Klik link di bawah untuk melihat seluruh screenshot aplikasi dari versi awal hingga final:
+**[Lihat Galeri Screenshot & Perubahan UI/UX](DiskFlow/docs/dokumentasi.md)**

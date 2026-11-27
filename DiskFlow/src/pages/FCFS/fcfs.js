@@ -1,4 +1,4 @@
-import { pt } from '../../shared/utils.js'
+import { pt } from '../../share/utils.js'
 
 // FCFS: layani request sesuai urutan kedatangan
 export function fcfs(reqs, head) {

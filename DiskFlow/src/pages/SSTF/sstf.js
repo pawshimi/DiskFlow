@@ -1,4 +1,4 @@
-import { pt } from '../../shared/utils.js'
+import { pt } from '../../share/utils.js'
 
 // SSTF: selalu pilih request dengan jarak terdekat dari posisi head saat ini
 export function sstf(reqs, head) {

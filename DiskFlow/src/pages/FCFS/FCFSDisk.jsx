@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import DiskScene from '../../shared/DiskScene.jsx'
-import InputForm from '../../shared/InputForm.jsx'
-import ModeTabs from '../../shared/ModeTabs.jsx'
-import { DEFAULTS, parseInputs } from '../../shared/utils.js'
+import DiskScene from '../../share/DiskScene.jsx'
+import InputForm from '../../share/InputForm.jsx'
+import ModeTabs from '../../share/ModeTabs.jsx'
+import { DEFAULTS, parseInputs } from '../../share/utils.js'
 import { fcfs } from './fcfs.js'
 
 // Overlay FCFS: nomor urut antrian di atas tiap request + garis ke target berikutnya

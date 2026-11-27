@@ -1,3 +1,4 @@
+import React from "react";
 import { NavLink, Route, Routes } from 'react-router-dom'
 import Home from './pages/Home/Home.jsx'
 import FCFSGraph from './pages/FCFS/FCFSGraph.jsx'
