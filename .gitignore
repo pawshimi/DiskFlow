@@ -1,0 +1,15 @@
+# File rahasia & API key
+.env
+.env.local
+.env.*.local
+*.env
+
+# Folder library berat (jangan di-push ke GitHub)
+node_modules/
+dist/
+dist-ssr/
+
+# File log & sistem
+*.log
+.DS_Store
+Thumbs.db
