@@ -7,12 +7,13 @@ import SSTFDisk from './pages/SSTF/SSTFDisk.jsx'
 import SCANGraph from './pages/SCAN/SCANGraph.jsx'
 import SCANDisk from './pages/SCAN/SCANDisk.jsx'
 import ChatBot from './share/ChatBot.jsx'
+import { MascotIcon } from './share/Mascot.jsx'
 
 export default function App() {
   return (
     <>
       <nav className="nav">
-        <b className="brand">DiskFlow</b>
+        <b className="brand"><MascotIcon size={34} /> DiskFlow</b>
         <NavLink to="/" end>Beranda</NavLink>
         <NavLink to="/fcfs">FCFS</NavLink>
         <NavLink to="/sstf">SSTF</NavLink>
