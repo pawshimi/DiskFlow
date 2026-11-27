@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import DiskScene from '../../share/DiskScene.jsx'
-import InputForm from '../../share/InputForm.jsx'
-import ModeTabs from '../../share/ModeTabs.jsx'
-import { DEFAULTS, parseInputs } from '../../share/utils.js'
+import DiskView from '../../shared/DiskView.jsx'
+import InputForm from '../../shared/InputForm.jsx'
+import ModeTabs from '../../shared/ModeTabs.jsx'
+import { DEFAULTS, parseInputs } from '../../shared/utils.js'
 import { fcfs } from './fcfs.js'
 
 // Overlay FCFS: nomor urut antrian di atas tiap request + garis ke target berikutnya
@@ -29,6 +29,7 @@ export default function FCFSDisk() {
   const [d, setD] = useState(0) // jarak yang sudah ditempuh head
   const [playing, setPlaying] = useState(false)
   const [speed, setSpeed] = useState(5)
+  const [rpm, setRpm] = useState(7200) // kecepatan putar piringan
   const [error, setError] = useState('')
   const dRef = useRef(0)
   const speedRef = useRef(5)
@@ -91,6 +92,13 @@ export default function FCFSDisk() {
         <label className="speed">Kecepatan: {speed}
           <input type="range" min="1" max="10" value={speed} onChange={(e) => setSpeed(Number(e.target.value))} />
         </label>
+        <label className="rpm">Putaran piringan
+          <select value={rpm} onChange={(e) => setRpm(Number(e.target.value))}>
+            <option value={5400}>5400 RPM</option>
+            <option value={7200}>7200 RPM</option>
+            <option value={10000}>10000 RPM</option>
+          </select>
+        </label>
       </div>
       {error && <p className="error">{error}</p>}
       {!res && !error && <p className="empty">Atur input lalu klik “Jalankan”.</p>}
@@ -101,8 +109,8 @@ export default function FCFSDisk() {
             <div><small>Request terlayani</small><b>{served} / {res.n}</b></div>
             <div><small>Posisi head</small><b>{Math.round(pos)}</b></div>
           </div>
-          <DiskScene path={res.path} max={res.max} pos={pos} reached={reached}
-            spinning={playing} overlay={overlay} />
+          <DiskView path={res.path} max={res.max} pos={pos} reached={reached}
+            spinning={playing} overlay={overlay} rpm={rpm} />
           <h3>Urutan layanan</h3>
           <div className="chips">
             {res.path.map((p, i) => i > 0 && p.req && (
