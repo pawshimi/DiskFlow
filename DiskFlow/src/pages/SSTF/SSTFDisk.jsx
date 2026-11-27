@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import DiskView from '../../shared/DiskView.jsx'
-import InputForm from '../../shared/InputForm.jsx'
-import ModeTabs from '../../shared/ModeTabs.jsx'
-import { DEFAULTS, parseInputs } from '../../shared/utils.js'
+import DiskView from '../../share/DiskView.jsx'
+import InputForm from '../../share/InputForm.jsx'
+import ModeTabs from '../../share/ModeTabs.jsx'
+import { DEFAULTS, parseInputs } from '../../share/utils.js'
 import { sstf } from './sstf.js'
 
 // Overlay SSTF: jarak live dari head ke tiap request tersisa, yang terdekat disorot
@@ -52,7 +52,7 @@ export default function SSTFDisk() {
     let raf
     let last = performance.now()
     const tick = (now) => {
-      const dt = (now - last) / 1000
+      const dt = Math.max(0, (now - last) / 1000) // timestamp rAF bisa sedikit lebih kecil dari performance.now()
       last = now
       dRef.current = Math.min(res.total, dRef.current + dt * speedRef.current * (res.max / 6))
       setD(dRef.current)
@@ -71,7 +71,7 @@ export default function SSTFDisk() {
 
   let reached = 0, pos = 0, served = 0
   if (res) {
-    reached = res.cum.filter((c) => c <= d).length - 1
+    reached = Math.max(0, res.cum.filter((c) => c <= d).length - 1)
     const k = Math.min(reached, res.path.length - 2)
     const seg = res.cum[k + 1] - res.cum[k]
     const f = seg ? (d - res.cum[k]) / seg : 1
