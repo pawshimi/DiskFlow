@@ -2,14 +2,13 @@ import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
-const R = 3, R_IN = 0.9, GAP = 1.1, COL_X = R + 1.5
-const PLATTERS = [GAP, 0, -GAP]
+const R = 3, R_IN = 0.9, COL_X = R + 1.5
 // f = 0 -> tepi luar (silinder 0), f = 1 -> dekat poros (silinder max)
 const rad = (f) => R - 0.2 - f * (R - 0.2 - R_IN)
 
 // Disk 3D: 3 piringan + spindle + arm assembly. Bisa digeser (putar kamera) dan di-zoom.
 // Piringan berputar saat spinning=true; arm/head mengikuti posisi silinder (pos).
-export default function DiskScene3D({ path, max, pos, reached, spinning, rpm = 7200 }) {
+export default function DiskScene3D({ path, max, pos, reached, spinning, rpm = 7200, platters = 3 }) {
   const mountRef = useRef(null)
   const api = useRef({})
   const live = useRef({})
@@ -18,6 +17,8 @@ export default function DiskScene3D({ path, max, pos, reached, spinning, rpm = 7
   // Bangun scene sekali
   useEffect(() => {
     const el = mountRef.current
+    const gap = platters === 1 ? 0 : Math.min(1.1, 3.4 / (platters - 1))
+    const ys = Array.from({ length: platters }, (_, i) => (i - (platters - 1) / 2) * gap)
     let renderer
     try {
       renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -52,7 +53,7 @@ export default function DiskScene3D({ path, max, pos, reached, spinning, rpm = 7
     const ringMat = new THREE.MeshBasicMaterial({ color: 0x90a4ae, side: THREE.DoubleSide })
     const sectorMat = new THREE.MeshBasicMaterial({ color: 0x81d4fa, side: THREE.DoubleSide })
 
-    PLATTERS.forEach((y) => {
+    ys.forEach((y) => {
       const platter = new THREE.Mesh(new THREE.CylinderGeometry(R, R, 0.08, 72), platterMat)
       platter.position.y = y
       rotor.add(platter)
@@ -72,25 +73,25 @@ export default function DiskScene3D({ path, max, pos, reached, spinning, rpm = 7
       sector.position.y = y + 0.046
       rotor.add(sector)
     })
-    const spindle = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 4.6, 24),
+    const spindle = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, (platters - 1) * gap + 1.6, 24),
       new THREE.MeshStandardMaterial({ color: 0x1e88e5 }))
     rotor.add(spindle)
 
     // Arm assembly (tidak berputar): kolom biru + 3 arm + 3 read-write head
-    const column = new THREE.Mesh(new THREE.BoxGeometry(0.4, 4.2, 0.6),
+    const column = new THREE.Mesh(new THREE.BoxGeometry(0.4, (platters - 1) * gap + 1.4, 0.6),
       new THREE.MeshStandardMaterial({ color: 0x1e88e5 }))
     column.position.set(COL_X, 0, 0)
     scene.add(column)
     const armMat = new THREE.MeshStandardMaterial({ color: 0x546e7a })
     const headMat = new THREE.MeshStandardMaterial({ color: 0xe67e22, emissive: 0x7a3d00 })
-    const arms = PLATTERS.map((y) => {
+    const arms = ys.map((y) => {
       const arm = new THREE.Mesh(new THREE.BoxGeometry(1, 0.06, 0.14), armMat)
       const head = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.1, 0.2), headMat)
       scene.add(arm, head)
       return { arm, head, y }
     })
 
-    api.current = { rotor, markers: [] }
+    api.current = { rotor, markers: [], top: ys[ys.length - 1], bottom: ys[0] }
 
     const resize = () => {
       const w = el.clientWidth, h = el.clientHeight
@@ -140,7 +141,7 @@ export default function DiskScene3D({ path, max, pos, reached, spinning, rpm = 7
       renderer.dispose()
       if (renderer.domElement.parentNode === el) el.removeChild(renderer.domElement)
     }
-  }, [])
+  }, [platters])
 
   // Pasang request di piringan teratas (kotak merah -> hijau saat dilayani)
   useEffect(() => {
@@ -156,12 +157,12 @@ export default function DiskScene3D({ path, max, pos, reached, spinning, rpm = 7
       const x = r * Math.cos(a), z = r * Math.sin(a)
       const box = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.08, 0.16),
         new THREE.MeshStandardMaterial({ color: 0xe74c3c, emissive: 0x551100 }))
-      box.position.set(x, GAP + 0.08, z)
+      box.position.set(x, api.current.top + 0.08, z)
       box.rotation.y = -a
       group.add(box)
       // garis putus-putus vertikal = satu silinder menembus semua piringan
       const line = new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x, GAP, z), new THREE.Vector3(x, -GAP, z)]),
+        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x, api.current.top, z), new THREE.Vector3(x, api.current.bottom, z)]),
         new THREE.LineDashedMaterial({ color: 0x607d8b, dashSize: 0.1, gapSize: 0.08 }))
       line.computeLineDistances()
       group.add(line)
@@ -173,7 +174,7 @@ export default function DiskScene3D({ path, max, pos, reached, spinning, rpm = 7
       rotor.remove(group)
       group.traverse((o) => { o.geometry?.dispose(); o.material?.dispose() })
     }
-  }, [path, max])
+  }, [path, max, platters])
 
   return (
     <div className="scene3d-wrap">
