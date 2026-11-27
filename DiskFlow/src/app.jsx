@@ -1,4 +1,3 @@
-import React from "react";
 import { NavLink, Route, Routes } from 'react-router-dom'
 import Home from './pages/Home/Home.jsx'
 import FCFSGraph from './pages/FCFS/FCFSGraph.jsx'
@@ -7,6 +6,7 @@ import SSTFGraph from './pages/SSTF/SSTFGraph.jsx'
 import SSTFDisk from './pages/SSTF/SSTFDisk.jsx'
 import SCANGraph from './pages/SCAN/SCANGraph.jsx'
 import SCANDisk from './pages/SCAN/SCANDisk.jsx'
+import ChatBot from './share/ChatBot.jsx'
 
 export default function App() {
   return (
@@ -29,6 +29,7 @@ export default function App() {
           <Route path="/scan/disk" element={<SCANDisk />} />
         </Routes>
       </main>
+      <ChatBot />
     </>
   )
 }
