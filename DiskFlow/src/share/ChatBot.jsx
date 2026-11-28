@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 
-const LANGFLOW_URL =
-  import.meta.env.VITE_LANGFLOW_URL ||
-  '/api/v1/run/40de0c84-1d0b-4f33-bc48-3a70111176a0';
-const LANGFLOW_API_KEY = import.meta.env.VITE_LANGFLOW_API_KEY || '';
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
+const GEMINI_MODEL = 'gemini-2.5-flash';
+
+const SYSTEM_PROMPT = `Kamu adalah Diska, asisten virtual ramah dan cerdas untuk aplikasi DiskFlow (simulator algoritma penjadwalan disk: FCFS, SSTF, dan SCAN). Jawab pertanyaan pengguna seputar konsep sistem operasi, cara kerja algoritma penjadwalan disk, perhitungan total head movement, serta penggunaan simulator DiskFlow secara jelas, ringkas, dan mudah dipahami dalam Bahasa Indonesia.`;
 
 export default function ChatBot() {
   const [open, setOpen] = useState(false);
@@ -26,25 +26,34 @@ export default function ChatBot() {
     const trimmed = input.trim();
     if (!trimmed || loading) return;
 
-    setMessages((prev) => [...prev, { sender: 'user', text: trimmed }]);
+    const updatedMessages = [...messages, { sender: 'user', text: trimmed }];
+    setMessages(updatedMessages);
     setInput('');
     setLoading(true);
 
     try {
-      const headers = { 'Content-Type': 'application/json' };
-      if (LANGFLOW_API_KEY) {
-        headers['x-api-key'] = LANGFLOW_API_KEY;
+      if (!GEMINI_API_KEY) {
+        throw new Error('VITE_GEMINI_API_KEY belum diisi');
       }
 
-      const response = await fetch(LANGFLOW_URL, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          input_value: trimmed,
-          output_type: 'chat',
-          input_type: 'chat',
-        }),
-      });
+      const contents = updatedMessages.slice(1).map((m) => ({
+        role: m.sender === 'user' ? 'user' : 'model',
+        parts: [{ text: m.text }],
+      }));
+
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemInstruction: {
+              parts: [{ text: SYSTEM_PROMPT }],
+            },
+            contents,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
@@ -52,18 +61,17 @@ export default function ChatBot() {
 
       const data = await response.json();
       const reply =
-        data?.outputs?.[0]?.outputs?.[0]?.results?.message?.text ||
-        data?.outputs?.[0]?.outputs?.[0]?.messages?.[0]?.message ||
+        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
         'Maaf, Diska belum mendapat jawaban dari server.';
 
       setMessages((prev) => [...prev, { sender: 'bot', text: reply }]);
     } catch (err) {
-      console.error('Langflow error:', err);
+      console.error('Gemini error:', err);
       setMessages((prev) => [
         ...prev,
         {
           sender: 'bot',
-          text: '⚠️ Tidak bisa terhubung ke Langflow (pastikan Langflow Desktop aktif dan API key di .env sudah benar).',
+          text: '⚠️ Gagal terhubung ke AI. Pastikan VITE_GEMINI_API_KEY sudah diatur dengan benar.',
         },
       ]);
     } finally {
