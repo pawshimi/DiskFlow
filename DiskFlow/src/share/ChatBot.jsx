@@ -1,89 +1,235 @@
-import { useEffect, useRef, useState } from 'react'
-import { MascotIcon } from './Mascot.jsx'
+import { useState, useRef, useEffect } from 'react';
 
-// Diisi lewat file .env (lihat .env.example)
-const RUN_URL = import.meta.env.VITE_LANGFLOW_URL
-const API_KEY = import.meta.env.VITE_LANGFLOW_API_KEY
+const LANGFLOW_URL =
+  import.meta.env.VITE_LANGFLOW_URL ||
+  '/api/v1/run/40de0c84-1d0b-4f33-bc48-3a70111176a0';
+const LANGFLOW_API_KEY = import.meta.env.VITE_LANGFLOW_API_KEY || '';
 
-// Ambil teks balasan dari bentuk respons Langflow (beda versi bisa beda path)
-function extractText(data) {
-  const out = data?.outputs?.[0]?.outputs?.[0]
-  return (
-    out?.results?.message?.text ??
-    out?.outputs?.message?.message ??
-    out?.artifacts?.message ??
-    out?.messages?.[0]?.message ??
-    null
-  )
-}
-
-// Chatbot melayang di pojok kanan bawah, terhubung ke flow Langflow
 export default function ChatBot() {
-  const [open, setOpen] = useState(false)
-  const [msgs, setMsgs] = useState([
-    { from: 'bot', text: 'Halo, aku Diska! Tanyakan apa saja soal penjadwalan disk (FCFS, SSTF, SCAN) 🌸' },
-  ])
-  const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
-  const sessionId = useRef(crypto.randomUUID ? crypto.randomUUID() : String(Date.now()))
-  const endRef = useRef(null)
+  const [open, setOpen] = useState(false);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [messages, setMessages] = useState([
+    {
+      sender: 'bot',
+      text: 'Halo, aku Diska! Tanyakan apa saja soal penjadwalan disk (FCFS, SSTF, SCAN) 🌸',
+    },
+  ]);
+  const bottomRef = useRef(null);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [msgs, open, loading])
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, open]);
 
-  const send = async () => {
-    const text = input.trim()
-    if (!text || loading) return
-    setMsgs((m) => [...m, { from: 'user', text }])
-    setInput('')
-    setLoading(true)
+  const sendMessage = async (e) => {
+    e?.preventDefault();
+    const trimmed = input.trim();
+    if (!trimmed || loading) return;
+
+    setMessages((prev) => [...prev, { sender: 'user', text: trimmed }]);
+    setInput('');
+    setLoading(true);
+
     try {
-      if (!RUN_URL) throw new Error('VITE_LANGFLOW_URL belum diatur di file .env')
-      const res = await fetch(RUN_URL, {
+      const headers = { 'Content-Type': 'application/json' };
+      if (LANGFLOW_API_KEY) {
+        headers['x-api-key'] = LANGFLOW_API_KEY;
+      }
+
+      const response = await fetch(LANGFLOW_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(API_KEY ? { 'x-api-key': API_KEY } : {}) },
+        headers,
         body: JSON.stringify({
-          input_value: text,
-          input_type: 'chat',
+          input_value: trimmed,
           output_type: 'chat',
-          session_id: sessionId.current,
+          input_type: 'chat',
         }),
-      })
-      if (!res.ok) throw new Error(`Langflow membalas dengan status ${res.status}`)
-      const data = await res.json()
-      setMsgs((m) => [...m, { from: 'bot', text: extractText(data) ?? 'Maaf, balasan tidak bisa dibaca.' }])
-    } catch (e) {
-      const msg = e instanceof TypeError ? 'Tidak bisa terhubung ke Langflow (cek URL atau pengaturan CORS).' : e.message
-      setMsgs((m) => [...m, { from: 'bot', text: `⚠️ ${msg}`, error: true }])
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      const reply =
+        data?.outputs?.[0]?.outputs?.[0]?.results?.message?.text ||
+        data?.outputs?.[0]?.outputs?.[0]?.messages?.[0]?.message ||
+        'Maaf, Diska belum mendapat jawaban dari server.';
+
+      setMessages((prev) => [...prev, { sender: 'bot', text: reply }]);
+    } catch (err) {
+      console.error('Langflow error:', err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: 'bot',
+          text: '⚠️ Tidak bisa terhubung ke Langflow (pastikan Langflow Desktop aktif dan API key di .env sudah benar).',
+        },
+      ]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <>
-      <button className="chat-fab" onClick={() => setOpen((o) => !o)} aria-label="Buka chatbot">
-        {open ? '✕' : <MascotIcon size={46} />}
-      </button>
+    <div style={{ position: 'fixed', bottom: 22, right: 22, zIndex: 9999 }}>
       {open && (
-        <div className="chat-panel">
-          <div className="chat-head">Asisten DiskFlow</div>
-          <div className="chat-body">
-            {msgs.map((m, i) => (
-              <div key={i} className={`chat-msg ${m.from}${m.error ? ' err' : ''}`}>{m.text}</div>
+        <div
+          style={{
+            width: 340,
+            height: 440,
+            marginBottom: 12,
+            background: '#FFF8F0',
+            borderRadius: 24,
+            border: '2px solid #FBCFE0',
+            boxShadow: '0 12px 28px rgba(89, 61, 76, 0.18)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            fontFamily: 'Nunito, sans-serif',
+          }}
+        >
+          <div
+            style={{
+              padding: '14px 18px',
+              background: '#F29AB8',
+              color: 'white',
+              fontFamily: 'Baloo 2, sans-serif',
+              fontWeight: 800,
+              fontSize: 17,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <span>Asisten DiskFlow</span>
+            <button
+              onClick={() => setOpen(false)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'white',
+                fontSize: 18,
+                cursor: 'pointer',
+                fontWeight: 800,
+              }}
+            >
+              ✕
+            </button>
+          </div>
+
+          <div
+            style={{
+              flex: 1,
+              padding: 14,
+              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+            }}
+          >
+            {messages.map((msg, idx) => (
+              <div
+                key={idx}
+                style={{
+                  alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
+                  maxWidth: '82%',
+                  padding: '10px 14px',
+                  borderRadius: 18,
+                  fontSize: 14,
+                  lineHeight: 1.45,
+                  background: msg.sender === 'user' ? '#63B382' : 'white',
+                  color: msg.sender === 'user' ? 'white' : '#4A3A46',
+                  border:
+                    msg.sender === 'user' ? 'none' : '1.5px solid #FBCFE0',
+                  whiteSpace: 'pre-wrap',
+                }}
+              >
+                {msg.text}
+              </div>
             ))}
-            {loading && <div className="chat-msg bot">Sedang mengetik…</div>}
-            <div ref={endRef} />
+            {loading && (
+              <div
+                style={{
+                  alignSelf: 'flex-start',
+                  padding: '8px 14px',
+                  borderRadius: 18,
+                  fontSize: 13,
+                  background: 'white',
+                  color: '#9A7F8D',
+                  border: '1.5px solid #FBCFE0',
+                }}
+              >
+                Diska sedang mengetik... 🌸
+              </div>
+            )}
+            <div ref={bottomRef} />
           </div>
-          <div className="chat-input">
-            <input value={input} placeholder="Tulis pertanyaan…" disabled={loading}
+
+          <form
+            onSubmit={sendMessage}
+            style={{
+              padding: 10,
+              background: '#FFF8F0',
+              borderTop: '1.5px solid #FBCFE0',
+              display: 'flex',
+              gap: 8,
+            }}
+          >
+            <input
+              type="text"
+              value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && send()} />
-            <button className="primary" onClick={send} disabled={loading}>Kirim</button>
-          </div>
+              placeholder="Tulis pertanyaan..."
+              style={{
+                flex: 1,
+                padding: '9px 14px',
+                borderRadius: 999,
+                border: '1.5px solid #FBCFE0',
+                outline: 'none',
+                fontSize: 14,
+                fontFamily: 'Nunito, sans-serif',
+                color: '#4A3A46',
+              }}
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                padding: '9px 16px',
+                borderRadius: 999,
+                border: 'none',
+                background: '#F29AB8',
+                boxShadow: '0 3px 0 #D9658F',
+                color: 'white',
+                fontWeight: 800,
+                fontSize: 14,
+                cursor: 'pointer',
+              }}
+            >
+              Kirim
+            </button>
+          </form>
         </div>
       )}
-    </>
-  )
+
+      <button
+        onClick={() => setOpen((prev) => !prev)}
+        style={{
+          width: 62,
+          height: 62,
+          borderRadius: '50%',
+          background: '#F29AB8',
+          border: '2px solid white',
+          boxShadow: '0 8px 20px rgba(0,0,0,0.20), 0 5px 0 #D9658F',
+          color: 'white',
+          fontSize: 24,
+          cursor: 'pointer',
+        }}
+        title="Chat dengan Diska"
+      >
+        💬
+      </button>
+    </div>
+  );
 }
