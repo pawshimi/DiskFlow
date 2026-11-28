@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { MascotIcon } from './Mascot.jsx'
 
 // Diisi lewat file .env (lihat .env.example)
 const RUN_URL = import.meta.env.VITE_LANGFLOW_URL
@@ -20,7 +21,7 @@ function extractText(data) {
 export default function ChatBot() {
   const [open, setOpen] = useState(false)
   const [msgs, setMsgs] = useState([
-    { from: 'bot', text: 'Halo! Tanyakan apa saja soal penjadwalan disk (FCFS, SSTF, SCAN).' },
+    { from: 'bot', text: 'Halo, aku Diska! Tanyakan apa saja soal penjadwalan disk (FCFS, SSTF, SCAN) 🌸' },
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -63,7 +64,7 @@ export default function ChatBot() {
   return (
     <>
       <button className="chat-fab" onClick={() => setOpen((o) => !o)} aria-label="Buka chatbot">
-        {open ? '✕' : '💬'}
+        {open ? '✕' : <MascotIcon size={46} />}
       </button>
       {open && (
         <div className="chat-panel">
